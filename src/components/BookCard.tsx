@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Book } from "../types/book";
@@ -5,13 +8,55 @@ import { Book } from "../types/book";
 interface BookCardProps {
   book: Book;
   isSelected?: boolean;
-  onSelect?: (id: string) => void;
+  onSelect?: (bookId: string) => void;
+  onDragStart?: (e: React.DragEvent, bookId: string) => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDrop?: (e: React.DragEvent, bookId: string) => void;
 }
 
-const BookCard = ({ book, isSelected, onSelect }: BookCardProps) => {
+const BookCard = ({
+  book,
+  isSelected,
+  onSelect,
+  onDragStart,
+  onDragOver,
+  onDrop,
+}: BookCardProps) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+
   return (
-    <div className="relative">
-      <div className="absolute top-2 right-2 z-10">
+    <div
+      className={`relative transition-all duration-200 ease-in-out ${
+        isDragging ? "scale-95 opacity-75" : ""
+      } ${isDragOver ? "ring-2 ring-blue-500 ring-offset-2" : ""}`}
+      draggable
+      onDragStart={(e) => {
+        setIsDragging(true);
+        onDragStart?.(e, book.id);
+        e.dataTransfer.setData("text/plain", book.id);
+      }}
+      onDragEnd={() => {
+        setIsDragging(false);
+        setIsDragOver(false);
+      }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setIsDragOver(true);
+        onDragOver?.(e);
+      }}
+      onDragLeave={() => setIsDragOver(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setIsDragOver(false);
+        onDrop?.(e, book.id);
+      }}
+    >
+      <div
+        className={`absolute top-2 right-2 z-10 transition-opacity duration-200 ${
+          isDragging ? "opacity-0" : "opacity-100"
+        }`}
+      >
         <input
           type="checkbox"
           checked={isSelected}
@@ -19,7 +64,11 @@ const BookCard = ({ book, isSelected, onSelect }: BookCardProps) => {
           className="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
         />
       </div>
-      <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+      <div
+        className={`bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-200 ${
+          isDragging ? "shadow-xl" : ""
+        }`}
+      >
         <Link href={`/books/${book.id}`}>
           <div className="relative h-48 w-full">
             {book.coverImage ? (

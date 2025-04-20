@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 const Navbar = () => {
@@ -7,7 +9,14 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="text-xl font-bold text-gray-800">
+              <Link
+                href="/"
+                className="text-xl font-bold text-gray-800 hover:text-gray-600"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = "/";
+                }}
+              >
                 Polly&apos;s Books
               </Link>
             </div>
@@ -16,6 +25,10 @@ const Navbar = () => {
             <Link
               href="/"
               className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = "/";
+              }}
             >
               Home
             </Link>

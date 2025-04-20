@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "../components/Navbar";
 import BookCard from "../components/BookCard";
 import { Book } from "../types/book";
@@ -10,15 +11,44 @@ import autoTable from "jspdf-autotable";
 import toast, { Toaster } from "react-hot-toast";
 
 export default function Home() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [books, setBooks] = useState<Book[]>([]);
   const [selectedBooks, setSelectedBooks] = useState<Set<string>>(new Set());
-  const [selectedGenre, setSelectedGenre] = useState<string>("");
+  const [selectedGenre, setSelectedGenre] = useState<string>(
+    searchParams.get("genre") || ""
+  );
   const [currentPage, setCurrentPage] = useState(1);
+  const [draggedBookId, setDraggedBookId] = useState<string | null>(null);
   const booksPerPage = 8;
 
   useEffect(() => {
-    setBooks(getBooks());
+    const savedBooks = getBooks();
+    const savedOrder = localStorage.getItem("bookOrder");
+
+    if (savedOrder) {
+      const order = JSON.parse(savedOrder) as string[];
+      // Sort books according to saved order
+      const orderedBooks = order
+        .map((id) => savedBooks.find((book) => book.id === id))
+        .filter((book): book is Book => book !== undefined);
+      // Add any new books that aren't in the order
+      const newBooks = savedBooks.filter((book) => !order.includes(book.id));
+      setBooks([...orderedBooks, ...newBooks]);
+    } else {
+      setBooks(savedBooks);
+    }
   }, []);
+
+  const handleGenreChange = (genre: string) => {
+    setSelectedGenre(genre);
+    setCurrentPage(1);
+    if (genre) {
+      router.push(`/?genre=${encodeURIComponent(genre)}`);
+    } else {
+      router.push("/");
+    }
+  };
 
   const handleSelectBook = (bookId: string) => {
     const newSelectedBooks = new Set(selectedBooks);
@@ -166,8 +196,52 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleDragStart = (e: React.DragEvent, bookId: string) => {
+    setDraggedBookId(bookId);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e: React.DragEvent, targetBookId: string) => {
+    e.preventDefault();
+    if (!draggedBookId || draggedBookId === targetBookId) return;
+
+    const draggedBookIndex = books.findIndex(
+      (book) => book.id === draggedBookId
+    );
+    const targetBookIndex = books.findIndex((book) => book.id === targetBookId);
+
+    if (draggedBookIndex === -1 || targetBookIndex === -1) return;
+
+    const newBooks = [...books];
+    const [draggedBook] = newBooks.splice(draggedBookIndex, 1);
+    newBooks.splice(targetBookIndex, 0, draggedBook);
+
+    setBooks(newBooks);
+    setDraggedBookId(null);
+
+    // Save the new order to localStorage
+    const newOrder = newBooks.map((book) => book.id);
+    localStorage.setItem("bookOrder", JSON.stringify(newOrder));
+  };
+
+  const handleMainClick = (e: React.MouseEvent) => {
+    // Only navigate if clicking the main container, not its children
+    if (e.target === e.currentTarget && selectedGenre) {
+      e.preventDefault();
+      window.location.href = "/";
+    }
+  };
+
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main
+      className={`min-h-screen bg-gray-50 ${selectedGenre ? "cursor-pointer" : ""}`}
+      onClick={handleMainClick}
+    >
       <Toaster
         position="top-center"
         toastOptions={{
@@ -185,10 +259,7 @@ export default function Home() {
             <h1 className="text-3xl font-bold text-gray-900">My Books</h1>
             <select
               value={selectedGenre}
-              onChange={(e) => {
-                setSelectedGenre(e.target.value);
-                setCurrentPage(1); // Reset to first page when genre changes
-              }}
+              onChange={(e) => handleGenreChange(e.target.value)}
               className="rounded-md bg-white text-gray-700 px-3 py-2 border-0 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
             >
               <option value="">All Genres</option>
@@ -264,6 +335,9 @@ export default function Home() {
                   book={book}
                   isSelected={selectedBooks.has(book.id)}
                   onSelect={handleSelectBook}
+                  onDragStart={handleDragStart}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
                 />
               ))}
             </div>
