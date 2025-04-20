@@ -1,5 +1,3 @@
-"use client";
-
 import { Suspense } from "react";
 import Navbar from "../components/Navbar";
 import BookListWithSearch from "../components/BookListWithSearch";
@@ -34,9 +32,5 @@ function HomeContent() {
 }
 
 export default function Home() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <HomeContent />
-    </Suspense>
-  );
+  return <HomeContent />;
 }
