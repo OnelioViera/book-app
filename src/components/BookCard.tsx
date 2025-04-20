@@ -51,6 +51,9 @@ const BookCard = ({ book, isSelected, onSelect }: BookCardProps) => {
               {book.title}
             </h3>
             <p className="text-sm text-gray-600 mb-2">by {book.author}</p>
+            {book.genre && (
+              <p className="text-sm text-gray-500 mb-2">{book.genre}</p>
+            )}
             {book.rating && (
               <div className="flex items-center">
                 <span className="text-yellow-500">★</span>

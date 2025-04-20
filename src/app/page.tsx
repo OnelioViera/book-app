@@ -12,6 +12,7 @@ import toast, { Toaster } from "react-hot-toast";
 export default function Home() {
   const [books, setBooks] = useState<Book[]>([]);
   const [selectedBooks, setSelectedBooks] = useState<Set<string>>(new Set());
+  const [selectedGenre, setSelectedGenre] = useState<string>("");
 
   useEffect(() => {
     setBooks(getBooks());
@@ -126,14 +127,12 @@ export default function Home() {
     const tableData = selectedBookList.map((book) => [
       book.title,
       book.author,
-      book.publishedDate
-        ? new Date(book.publishedDate).toLocaleDateString()
-        : "N/A",
+      book.genre || "N/A",
       book.rating ? book.rating.toFixed(1) : "N/A",
     ]);
 
     autoTable(doc, {
-      head: [["Title", "Author", "Published Date", "Rating"]],
+      head: [["Title", "Author", "Genre", "Rating"]],
       body: tableData,
       startY: 30,
       theme: "grid",
@@ -144,6 +143,10 @@ export default function Home() {
     // Save the PDF
     doc.save("my-books.pdf");
   };
+
+  const filteredBooks = selectedGenre
+    ? books.filter((book) => book.genre === selectedGenre)
+    : books;
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -160,7 +163,23 @@ export default function Home() {
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">My Books</h1>
+          <div className="flex items-center space-x-4">
+            <h1 className="text-3xl font-bold text-gray-900">My Books</h1>
+            <select
+              value={selectedGenre}
+              onChange={(e) => setSelectedGenre(e.target.value)}
+              className="rounded-md bg-white text-gray-700 px-3 py-2 border-0 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            >
+              <option value="">All Genres</option>
+              {Array.from(
+                new Set(books.map((book) => book.genre).filter(Boolean))
+              ).map((genre) => (
+                <option key={genre} value={genre}>
+                  {genre}
+                </option>
+              ))}
+            </select>
+          </div>
           {books.length > 0 && (
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 bg-gray-100 p-2 rounded-md">
@@ -217,7 +236,7 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {books.map((book) => (
+            {filteredBooks.map((book) => (
               <BookCard
                 key={book.id}
                 book={book}

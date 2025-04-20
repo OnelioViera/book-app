@@ -6,6 +6,28 @@ import Image from "next/image";
 import Navbar from "../../components/Navbar";
 import { saveBook } from "../../utils/bookStorage";
 
+const genres = [
+  "Fiction",
+  "Non-Fiction",
+  "Mystery",
+  "Science Fiction",
+  "Fantasy",
+  "Romance",
+  "Thriller",
+  "Horror",
+  "Biography",
+  "History",
+  "Self-Help",
+  "Poetry",
+  "Drama",
+  "Comedy",
+  "Adventure",
+  "Crime",
+  "Young Adult",
+  "Children's",
+  "Other",
+];
+
 export default function AddBook() {
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -13,7 +35,7 @@ export default function AddBook() {
     author: "",
     description: "",
     coverImage: "",
-    publishedDate: "",
+    genre: "",
     rating: "",
   });
   const [previewImage, setPreviewImage] = useState<string>("");
@@ -25,6 +47,7 @@ export default function AddBook() {
         ...formData,
         rating: formData.rating ? parseFloat(formData.rating) : undefined,
         description: formData.description || undefined,
+        genre: formData.genre || undefined,
       };
       const newBook = await saveBook(bookData);
       router.push(`/books/${newBook.id}`);
@@ -35,7 +58,9 @@ export default function AddBook() {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -127,6 +152,29 @@ export default function AddBook() {
 
           <div>
             <label
+              htmlFor="genre"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Genre (Optional)
+            </label>
+            <select
+              id="genre"
+              name="genre"
+              value={formData.genre}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white text-gray-900 px-3 py-2 border"
+            >
+              <option value="">Select a genre</option>
+              {genres.map((genre) => (
+                <option key={genre} value={genre}>
+                  {genre}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label
               htmlFor="coverImage"
               className="block text-sm font-medium text-gray-700"
             >
@@ -169,23 +217,6 @@ export default function AddBook() {
                 />
               </div>
             )}
-          </div>
-
-          <div>
-            <label
-              htmlFor="publishedDate"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Published Date
-            </label>
-            <input
-              type="date"
-              id="publishedDate"
-              name="publishedDate"
-              value={formData.publishedDate}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white text-gray-900 px-3 py-2 border"
-            />
           </div>
 
           <div>

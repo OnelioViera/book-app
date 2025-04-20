@@ -71,14 +71,10 @@ export default function BookDetail() {
               )}
 
               <div className="space-y-4">
-                {book.publishedDate && (
+                {book.genre && (
                   <div>
-                    <h3 className="text-sm font-medium text-gray-500">
-                      Published Date
-                    </h3>
-                    <p className="text-gray-900">
-                      {new Date(book.publishedDate).toLocaleDateString()}
-                    </p>
+                    <h3 className="text-sm font-medium text-gray-500">Genre</h3>
+                    <p className="text-gray-900">{book.genre}</p>
                   </div>
                 )}
 
