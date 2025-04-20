@@ -19,6 +19,8 @@ export default function EditBook() {
     rating: undefined,
   });
   const [previewImage, setPreviewImage] = useState<string>("");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
 
   const genres = [
     "Fiction",
@@ -86,11 +88,31 @@ export default function EditBook() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setIsUploading(true);
+      setUploadProgress(0);
+
+      // Simulate upload progress
+      const interval = setInterval(() => {
+        setUploadProgress((prev) => {
+          if (prev >= 95) {
+            clearInterval(interval);
+            return prev;
+          }
+          return prev + 5;
+        });
+      }, 100);
+
       const reader = new FileReader();
       reader.onloadend = () => {
+        clearInterval(interval);
+        setUploadProgress(100);
         const result = reader.result as string;
         setPreviewImage(result);
         setFormData((prev) => ({ ...prev, coverImage: result }));
+        setTimeout(() => {
+          setIsUploading(false);
+          setUploadProgress(0);
+        }, 500);
       };
       reader.readAsDataURL(file);
     } else {
@@ -232,7 +254,20 @@ export default function EditBook() {
                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white text-gray-900 px-3 py-2 border"
               />
             </div>
-            {previewImage && (
+            {isUploading && (
+              <div className="mt-2">
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div
+                    className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
+                </div>
+                <p className="text-sm text-gray-500 mt-1 text-center">
+                  Uploading image... {uploadProgress}%
+                </p>
+              </div>
+            )}
+            {previewImage && !isUploading && (
               <div className="mt-2">
                 <Image
                   src={previewImage}
