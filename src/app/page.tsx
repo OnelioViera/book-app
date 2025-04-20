@@ -150,13 +150,16 @@ export default function Home() {
     ? books.filter((book) => book.genre === selectedGenre)
     : books;
 
+  // Sort books: unread first, then read
+  const sortedBooks = [...filteredBooks].sort((a, b) => {
+    if (a.isRead === b.isRead) return 0;
+    return a.isRead ? 1 : -1;
+  });
+
   // Calculate pagination
-  const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
+  const totalPages = Math.ceil(sortedBooks.length / booksPerPage);
   const startIndex = (currentPage - 1) * booksPerPage;
-  const currentBooks = filteredBooks.slice(
-    startIndex,
-    startIndex + booksPerPage
-  );
+  const currentBooks = sortedBooks.slice(startIndex, startIndex + booksPerPage);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
