@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "../components/Navbar";
 import BookCard from "../components/BookCard";
@@ -10,7 +10,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import toast, { Toaster } from "react-hot-toast";
 
-export default function Home() {
+function HomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [books, setBooks] = useState<Book[]>([]);
@@ -392,5 +392,13 @@ export default function Home() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }
