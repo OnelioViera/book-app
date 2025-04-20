@@ -24,6 +24,7 @@ export default function AddBook() {
       const bookData = {
         ...formData,
         rating: formData.rating ? parseFloat(formData.rating) : undefined,
+        description: formData.description || undefined,
       };
       const newBook = await saveBook(bookData);
       router.push(`/books/${newBook.id}`);
@@ -42,6 +43,9 @@ export default function AddBook() {
     // Update preview image if it's a URL
     if (name === "coverImage" && value.startsWith("http")) {
       setPreviewImage(value);
+    } else if (name === "coverImage" && !value) {
+      // Clear preview if URL is cleared
+      setPreviewImage("");
     }
   };
 
@@ -55,6 +59,10 @@ export default function AddBook() {
         setFormData((prev) => ({ ...prev, coverImage: result }));
       };
       reader.readAsDataURL(file);
+    } else {
+      // Clear preview if no file is selected
+      setPreviewImage("");
+      setFormData((prev) => ({ ...prev, coverImage: "" }));
     }
   };
 
@@ -105,12 +113,11 @@ export default function AddBook() {
               htmlFor="description"
               className="block text-sm font-medium text-gray-700"
             >
-              Description
+              Description (Optional)
             </label>
             <textarea
               id="description"
               name="description"
-              required
               rows={4}
               value={formData.description}
               onChange={handleChange}

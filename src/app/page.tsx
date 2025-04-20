@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import BookCard from "../components/BookCard";
 import { Book } from "../types/book";
-import { getBooks } from "../utils/bookStorage";
+import { getBooks, deleteBook } from "../utils/bookStorage";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function Home() {
   const [books, setBooks] = useState<Book[]>([]);
@@ -32,6 +33,85 @@ export default function Home() {
 
   const handleDeselectAll = () => {
     setSelectedBooks(new Set());
+  };
+
+  const handleDeleteSelected = () => {
+    toast.custom(
+      (t) => (
+        <div
+          className={`${
+            t.visible ? "animate-enter" : "animate-leave"
+          } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+        >
+          <div className="flex-1 w-0 p-4">
+            <div className="flex items-start">
+              <div className="flex-shrink-0 pt-0.5">
+                <svg
+                  className="h-6 w-6 text-red-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <div className="ml-3 flex-1">
+                <p className="text-sm font-medium text-gray-900">
+                  Delete {selectedBooks.size} book
+                  {selectedBooks.size !== 1 ? "s" : ""}?
+                </p>
+                <p className="mt-1 text-sm text-gray-500">
+                  This action cannot be undone. Are you sure you want to delete
+                  the selected book{selectedBooks.size !== 1 ? "s" : ""}?
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex border-l border-gray-200">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                // Remove selected books from the list
+                const updatedBooks = books.filter(
+                  (book) => !selectedBooks.has(book.id)
+                );
+                setBooks(updatedBooks);
+
+                // Delete selected books from localStorage
+                selectedBooks.forEach((bookId) => deleteBook(bookId));
+
+                // Clear selection
+                setSelectedBooks(new Set());
+
+                toast.dismiss(t.id);
+                toast.success("Books deleted successfully!");
+              }}
+              className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-red-600 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+              Delete
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toast.dismiss(t.id);
+              }}
+              className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-gray-700 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        duration: 0, // No auto-dismiss
+        position: "top-center",
+      }
+    );
   };
 
   const exportToPDF = () => {
@@ -67,6 +147,16 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50">
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 2000,
+          style: {
+            background: "#fff",
+            color: "#333",
+          },
+        }}
+      />
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
@@ -85,12 +175,20 @@ export default function Home() {
                   Select All
                 </button>
                 {selectedBooks.size > 0 && (
-                  <button
-                    onClick={handleDeselectAll}
-                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm"
-                  >
-                    Deselect All
-                  </button>
+                  <>
+                    <button
+                      onClick={handleDeselectAll}
+                      className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm"
+                    >
+                      Deselect All
+                    </button>
+                    <button
+                      onClick={handleDeleteSelected}
+                      className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm"
+                    >
+                      Delete Selected
+                    </button>
+                  </>
                 )}
               </div>
               <button
