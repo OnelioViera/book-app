@@ -2,10 +2,13 @@ import { NextResponse } from "next/server";
 import connectDB from "@/utils/mongodb";
 import Book from "@/models/Book";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+interface RouteParams {
+  params: {
+    id: string;
+  };
+}
+
+export async function GET(request: Request, { params }: RouteParams) {
   try {
     await connectDB();
     const book = await Book.findById(params.id);
@@ -24,10 +27,7 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: Request, { params }: RouteParams) {
   try {
     const body = await request.json();
     await connectDB();
@@ -48,10 +48,7 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: Request, { params }: RouteParams) {
   try {
     await connectDB();
     const book = await Book.findByIdAndDelete(params.id);
