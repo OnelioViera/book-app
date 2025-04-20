@@ -10,14 +10,15 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import toast, { Toaster } from "react-hot-toast";
 
-function HomeContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+function BookList({
+  selectedGenre,
+  onGenreChange,
+}: {
+  selectedGenre: string;
+  onGenreChange: (genre: string) => void;
+}) {
   const [books, setBooks] = useState<Book[]>([]);
   const [selectedBooks, setSelectedBooks] = useState<Set<string>>(new Set());
-  const [selectedGenre, setSelectedGenre] = useState<string>(
-    searchParams.get("genre") || ""
-  );
   const [currentPage, setCurrentPage] = useState(1);
   const [draggedBookId, setDraggedBookId] = useState<string | null>(null);
   const booksPerPage = 8;
@@ -28,27 +29,15 @@ function HomeContent() {
 
     if (savedOrder) {
       const order = JSON.parse(savedOrder) as string[];
-      // Sort books according to saved order
       const orderedBooks = order
         .map((id) => savedBooks.find((book) => book.id === id))
         .filter((book): book is Book => book !== undefined);
-      // Add any new books that aren't in the order
       const newBooks = savedBooks.filter((book) => !order.includes(book.id));
       setBooks([...orderedBooks, ...newBooks]);
     } else {
       setBooks(savedBooks);
     }
   }, []);
-
-  const handleGenreChange = (genre: string) => {
-    setSelectedGenre(genre);
-    setCurrentPage(1);
-    if (genre) {
-      router.push(`/?genre=${encodeURIComponent(genre)}`);
-    } else {
-      router.push("/");
-    }
-  };
 
   const handleSelectBook = (bookId: string) => {
     const newSelectedBooks = new Set(selectedBooks);
@@ -259,7 +248,7 @@ function HomeContent() {
             <h1 className="text-3xl font-bold text-gray-900">My Books</h1>
             <select
               value={selectedGenre}
-              onChange={(e) => handleGenreChange(e.target.value)}
+              onChange={(e) => onGenreChange(e.target.value)}
               className="rounded-md bg-white text-gray-700 px-3 py-2 border-0 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
             >
               <option value="">All Genres</option>
@@ -390,6 +379,51 @@ function HomeContent() {
             )}
           </>
         )}
+      </div>
+    </main>
+  );
+}
+
+function HomeContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const selectedGenre = searchParams.get("genre") || "";
+
+  const handleGenreChange = (genre: string) => {
+    if (genre) {
+      router.push(`/?genre=${encodeURIComponent(genre)}`);
+    } else {
+      router.push("/");
+    }
+  };
+
+  return (
+    <main
+      className={`min-h-screen bg-gray-50 ${selectedGenre ? "cursor-pointer" : ""}`}
+    >
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 2000,
+          style: {
+            background: "#fff",
+            color: "#333",
+          },
+        }}
+      />
+      <Navbar />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center space-x-4">
+            <h1 className="text-3xl font-bold text-gray-900">My Books</h1>
+            <Suspense fallback={<div>Loading books...</div>}>
+              <BookList
+                selectedGenre={selectedGenre}
+                onGenreChange={handleGenreChange}
+              />
+            </Suspense>
+          </div>
+        </div>
       </div>
     </main>
   );
