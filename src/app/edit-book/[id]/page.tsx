@@ -15,33 +15,57 @@ export default function EditBook() {
     author: "",
     description: "",
     coverImage: "",
-    publishedDate: "",
+    genre: "",
     rating: undefined,
   });
   const [previewImage, setPreviewImage] = useState<string>("");
 
+  const genres = [
+    "Fiction",
+    "Non-Fiction",
+    "Mystery",
+    "Science Fiction",
+    "Fantasy",
+    "Romance",
+    "Thriller",
+    "Horror",
+    "Biography",
+    "History",
+    "Self-Help",
+    "Poetry",
+    "Drama",
+    "Comedy",
+    "Adventure",
+    "Crime",
+    "Young Adult",
+    "Children's",
+    "Other",
+  ];
+
   useEffect(() => {
     const bookId = params.id as string;
     const book = getBookById(bookId);
-    if (!book) {
+    if (book) {
+      setFormData({
+        title: book.title,
+        author: book.author,
+        description: book.description || "",
+        coverImage: book.coverImage || "",
+        genre: book.genre || "",
+        rating: book.rating,
+      });
+      if (book.coverImage) {
+        setPreviewImage(book.coverImage);
+      }
+    } else {
       router.push("/");
-      return;
-    }
-    setFormData(book);
-    if (book.coverImage) {
-      setPreviewImage(book.coverImage);
     }
   }, [params.id, router]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const bookId = params.id as string;
-    updateBook(bookId, formData);
-    router.push(`/books/${bookId}`);
-  };
-
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -49,6 +73,14 @@ export default function EditBook() {
       [name]:
         name === "rating" ? (value ? parseFloat(value) : undefined) : value,
     }));
+
+    // Update preview image if it's a URL
+    if (name === "coverImage" && value.startsWith("http")) {
+      setPreviewImage(value);
+    } else if (name === "coverImage" && !value) {
+      // Clear preview if URL is cleared
+      setPreviewImage("");
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,6 +93,29 @@ export default function EditBook() {
         setFormData((prev) => ({ ...prev, coverImage: result }));
       };
       reader.readAsDataURL(file);
+    } else {
+      // Clear preview if no file is selected
+      setPreviewImage("");
+      setFormData((prev) => ({ ...prev, coverImage: "" }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const bookId = params.id as string;
+      const bookData = {
+        ...formData,
+        rating: formData.rating
+          ? parseFloat(formData.rating.toString())
+          : undefined,
+        description: formData.description || undefined,
+        genre: formData.genre || undefined,
+      };
+      await updateBook(bookId, bookData);
+      router.push(`/books/${bookId}`);
+    } catch (error) {
+      console.error("Error updating book:", error);
     }
   };
 
@@ -111,17 +166,39 @@ export default function EditBook() {
               htmlFor="description"
               className="block text-sm font-medium text-gray-700"
             >
-              Description
+              Description (Optional)
             </label>
             <textarea
               id="description"
               name="description"
-              required
               rows={4}
               value={formData.description}
               onChange={handleChange}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white text-gray-900 px-3 py-2 border"
             />
+          </div>
+
+          <div>
+            <label
+              htmlFor="genre"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Genre (Optional)
+            </label>
+            <select
+              id="genre"
+              name="genre"
+              value={formData.genre}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white text-gray-900 px-3 py-2 border"
+            >
+              <option value="">Select a genre</option>
+              {genres.map((genre) => (
+                <option key={genre} value={genre}>
+                  {genre}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
@@ -147,6 +224,8 @@ export default function EditBook() {
               />
               <input
                 type="text"
+                id="coverImageUrl"
+                name="coverImage"
                 placeholder="Or enter image URL"
                 value={formData.coverImage}
                 onChange={handleChange}
@@ -161,26 +240,11 @@ export default function EditBook() {
                   width={128}
                   height={128}
                   className="h-32 w-auto object-contain rounded-md"
+                  loader={({ src }) => src}
+                  unoptimized={previewImage.startsWith("data:image")}
                 />
               </div>
             )}
-          </div>
-
-          <div>
-            <label
-              htmlFor="publishedDate"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Published Date
-            </label>
-            <input
-              type="date"
-              id="publishedDate"
-              name="publishedDate"
-              value={formData.publishedDate}
-              onChange={handleChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white text-gray-900 px-3 py-2 border"
-            />
           </div>
 
           <div>
@@ -197,20 +261,13 @@ export default function EditBook() {
               min="1"
               max="5"
               step="0.1"
-              value={formData.rating || ""}
+              value={formData.rating}
               onChange={handleChange}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white text-gray-900 px-3 py-2 border"
             />
           </div>
 
-          <div className="flex justify-end space-x-4">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors"
-            >
-              Cancel
-            </button>
+          <div className="flex justify-end">
             <button
               type="submit"
               className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
