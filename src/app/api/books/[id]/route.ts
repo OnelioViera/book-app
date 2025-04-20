@@ -2,9 +2,13 @@ import { NextResponse } from "next/server";
 import connectDB from "@/utils/mongodb";
 import Book from "@/models/Book";
 
+type RouteParams = {
+  id: string;
+};
+
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: RouteParams }
 ) {
   try {
     await connectDB();
@@ -26,7 +30,7 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: RouteParams }
 ) {
   try {
     const body = await request.json();
@@ -52,7 +56,7 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: RouteParams }
 ) {
   try {
     await connectDB();
