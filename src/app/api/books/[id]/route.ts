@@ -2,13 +2,16 @@ import { NextResponse } from "next/server";
 import connectDB from "@/utils/mongodb";
 import Book from "@/models/Book";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+type RouteParams = {
+  params: {
+    id: string;
+  };
+};
+
+export async function GET(request: Request, context: RouteParams) {
   try {
     await connectDB();
-    const book = await Book.findById(params.id);
+    const book = await Book.findById(context.params.id);
 
     if (!book) {
       return NextResponse.json({ error: "Book not found" }, { status: 404 });
@@ -24,15 +27,14 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: Request, context: RouteParams) {
   try {
     const body = await request.json();
     await connectDB();
 
-    const book = await Book.findByIdAndUpdate(params.id, body, { new: true });
+    const book = await Book.findByIdAndUpdate(context.params.id, body, {
+      new: true,
+    });
 
     if (!book) {
       return NextResponse.json({ error: "Book not found" }, { status: 404 });
@@ -48,13 +50,10 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: Request, context: RouteParams) {
   try {
     await connectDB();
-    const book = await Book.findByIdAndDelete(params.id);
+    const book = await Book.findByIdAndDelete(context.params.id);
 
     if (!book) {
       return NextResponse.json({ error: "Book not found" }, { status: 404 });
