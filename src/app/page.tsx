@@ -416,12 +416,10 @@ function HomeContent() {
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center space-x-4">
             <h1 className="text-3xl font-bold text-gray-900">My Books</h1>
-            <Suspense fallback={<div>Loading books...</div>}>
-              <BookList
-                selectedGenre={selectedGenre}
-                onGenreChange={handleGenreChange}
-              />
-            </Suspense>
+            <BookList
+              selectedGenre={selectedGenre}
+              onGenreChange={handleGenreChange}
+            />
           </div>
         </div>
       </div>
