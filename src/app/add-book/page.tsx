@@ -136,6 +136,8 @@ export default function AddBook() {
               />
               <input
                 type="text"
+                id="coverImageUrl"
+                name="coverImage"
                 placeholder="Or enter image URL"
                 value={formData.coverImage}
                 onChange={handleChange}
