@@ -50,6 +50,7 @@ export default function AddBook() {
         rating: formData.rating ? parseFloat(formData.rating) : undefined,
         description: formData.description || undefined,
         genre: formData.genre || undefined,
+        isRead: false,
       };
       const newBook = await saveBook(bookData);
       router.push(`/books/${newBook.id}`);

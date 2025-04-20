@@ -6,6 +6,7 @@ export interface Book {
   coverImage?: string;
   genre?: string;
   rating?: number;
+  isRead: boolean;
   createdAt: string;
   updatedAt: string;
 }

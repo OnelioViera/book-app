@@ -4,8 +4,13 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Navbar from "../../../components/Navbar";
-import { getBookById, deleteBook } from "../../../utils/bookStorage";
+import {
+  getBookById,
+  deleteBook,
+  updateBook,
+} from "../../../utils/bookStorage";
 import { Book } from "../../../types/book";
+import toast from "react-hot-toast";
 
 export default function BookDetail() {
   const params = useParams();
@@ -29,12 +34,33 @@ export default function BookDetail() {
     }
   };
 
+  const handleMarkAsRead = async () => {
+    if (book) {
+      try {
+        await updateBook(book.id, { ...book, isRead: !book.isRead });
+        setBook({ ...book, isRead: !book.isRead });
+        toast.success(`Book marked as ${!book.isRead ? "read" : "unread"}!`);
+      } catch (error: unknown) {
+        console.error("Failed to update book status:", error);
+        toast.error("Failed to update book status");
+      }
+    }
+  };
+
   if (!book) {
     return null;
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main
+      className="min-h-screen bg-gray-50 cursor-pointer"
+      onClick={(e) => {
+        // Only navigate if clicking the main container, not its children
+        if (e.target === e.currentTarget) {
+          router.push("/");
+        }
+      }}
+    >
       <Navbar />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -104,6 +130,16 @@ export default function BookDetail() {
                 </div>
 
                 <div className="flex justify-end space-x-4 pt-4">
+                  <button
+                    onClick={handleMarkAsRead}
+                    className={`${
+                      book.isRead
+                        ? "bg-gray-600 hover:bg-gray-700"
+                        : "bg-green-600 hover:bg-green-700"
+                    } text-white px-4 py-2 rounded-md transition-colors`}
+                  >
+                    {book.isRead ? "Mark as Unread" : "Mark as Read"}
+                  </button>
                   <button
                     onClick={() => router.push(`/edit-book/${book.id}`)}
                     className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
