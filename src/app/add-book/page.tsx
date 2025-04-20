@@ -38,6 +38,11 @@ export default function AddBook() {
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Update preview image if it's a URL
+    if (name === "coverImage" && value.startsWith("http")) {
+      setPreviewImage(value);
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -152,6 +157,8 @@ export default function AddBook() {
                   width={128}
                   height={128}
                   className="h-32 w-auto object-contain rounded-md"
+                  loader={({ src }) => src}
+                  unoptimized={previewImage.startsWith("data:image")}
                 />
               </div>
             )}
