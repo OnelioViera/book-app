@@ -113,10 +113,7 @@ export const getBookById = (id: string): Book | null => {
   if (book.coverImage?.startsWith("img_")) {
     const imageData = localStorage.getItem(book.coverImage);
     if (imageData) {
-      return {
-        ...book,
-        coverImage: imageData,
-      };
+      book.coverImage = imageData;
     }
   }
 
