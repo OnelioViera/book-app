@@ -27,7 +27,7 @@ const BookCard = ({
 
   return (
     <div
-      className={`relative transition-all duration-200 ease-in-out ${
+      className={`relative transition-all duration-300 ease-in-out ${
         isDragging ? "scale-95 opacity-75" : ""
       } ${isDragOver ? "ring-2 ring-blue-500 ring-offset-2" : ""}`}
       draggable
@@ -65,12 +65,12 @@ const BookCard = ({
         />
       </div>
       <div
-        className={`bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-200 ${
-          isDragging ? "shadow-xl" : ""
+        className={`group relative bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 ${
+          isDragging ? "shadow-2xl" : ""
         }`}
       >
         <Link href={`/books/${book.id}`}>
-          <div className="relative h-48 w-full">
+          <div className="relative aspect-square w-full">
             {book.coverImage ? (
               <Image
                 src={
@@ -82,8 +82,8 @@ const BookCard = ({
                 }
                 alt={book.title}
                 fill
-                className="object-contain"
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                className="object-contain p-4 transition-transform duration-300 group-hover:scale-105"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 priority={false}
                 quality={75}
                 loader={({ src }) => src}
@@ -93,7 +93,7 @@ const BookCard = ({
                 }
               />
             ) : (
-              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+              <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                 <svg
                   className="w-24 h-24 text-gray-400"
                   fill="none"
@@ -111,29 +111,36 @@ const BookCard = ({
               </div>
             )}
           </div>
-          <div className="p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">
+          <div className="border-t border-gray-200" />
+          <div className="p-4 space-y-2">
+            <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors duration-200 line-clamp-2">
               {book.title}
             </h3>
-            <p className="text-sm text-gray-600 mb-2">by {book.author}</p>
+            <p className="text-sm font-medium text-gray-600 line-clamp-1">
+              by {book.author}
+            </p>
             {book.genre && (
-              <p className="text-sm text-gray-500 mb-2">{book.genre}</p>
-            )}
-            {book.rating && (
-              <div className="flex items-center">
-                <span className="text-yellow-500">★</span>
-                <span className="ml-1 text-sm text-gray-600">
-                  {book.rating.toFixed(1)}
+              <div className="flex items-center space-x-2">
+                <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                  {book.genre}
                 </span>
               </div>
             )}
-            {book.isRead && (
-              <div className="mt-2">
+            <div className="flex items-center justify-between pt-2">
+              {book.rating && (
+                <div className="flex items-center space-x-1">
+                  <span className="text-yellow-400 text-lg">★</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    {book.rating.toFixed(1)}
+                  </span>
+                </div>
+              )}
+              {book.isRead && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                   Read
                 </span>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </Link>
       </div>

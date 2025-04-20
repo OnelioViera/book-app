@@ -17,9 +17,11 @@ export default function BookListWithSearch() {
   };
 
   return (
-    <BookList
-      selectedGenre={selectedGenre}
-      onGenreChangeAction={handleGenreChange}
-    />
+    <div className="w-full">
+      <BookList
+        selectedGenre={selectedGenre}
+        onGenreChangeAction={handleGenreChange}
+      />
+    </div>
   );
 }

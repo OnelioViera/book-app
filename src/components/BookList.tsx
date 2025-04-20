@@ -219,64 +219,68 @@ export default function BookList({
   };
 
   return (
-    <>
-      <select
-        value={selectedGenre}
-        onChange={(e) => onGenreChangeAction(e.target.value)}
-        className="rounded-md bg-white text-gray-700 px-3 py-2 border-0 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-      >
-        <option value="">All Genres</option>
-        {Array.from(
-          new Set(books.map((book) => book.genre).filter(Boolean))
-        ).map((genre) => (
-          <option key={genre} value={genre}>
-            {genre}
-          </option>
-        ))}
-      </select>
-      {books.length > 0 && (
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2 bg-gray-100 p-2 rounded-md">
-            <span className="text-sm text-gray-700">
-              {selectedBooks.size} book{selectedBooks.size !== 1 ? "s" : ""}{" "}
-              selected
-            </span>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <select
+          value={selectedGenre}
+          onChange={(e) => onGenreChangeAction(e.target.value)}
+          className="rounded-md bg-white text-gray-700 px-3 py-2 border-0 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        >
+          <option value="">All Genres</option>
+          {Array.from(
+            new Set(books.map((book) => book.genre).filter(Boolean))
+          ).map((genre) => (
+            <option key={genre} value={genre}>
+              {genre}
+            </option>
+          ))}
+        </select>
+
+        {books.length > 0 && (
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 bg-gray-100 p-2 rounded-md">
+              <span className="text-sm text-gray-700">
+                {selectedBooks.size} book{selectedBooks.size !== 1 ? "s" : ""}{" "}
+                selected
+              </span>
+              <button
+                onClick={handleSelectAll}
+                className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm"
+              >
+                Select All
+              </button>
+              {selectedBooks.size > 0 && (
+                <>
+                  <button
+                    onClick={handleDeselectAll}
+                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm"
+                  >
+                    Deselect All
+                  </button>
+                  <button
+                    onClick={handleDeleteSelected}
+                    className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm"
+                  >
+                    Delete Selected
+                  </button>
+                </>
+              )}
+            </div>
             <button
-              onClick={handleSelectAll}
-              className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm"
+              onClick={exportToPDF}
+              disabled={selectedBooks.size === 0}
+              className={`px-4 py-2 rounded-md transition-colors ${
+                selectedBooks.size === 0
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
             >
-              Select All
+              Export Selected to PDF
             </button>
-            {selectedBooks.size > 0 && (
-              <>
-                <button
-                  onClick={handleDeselectAll}
-                  className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm"
-                >
-                  Deselect All
-                </button>
-                <button
-                  onClick={handleDeleteSelected}
-                  className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm"
-                >
-                  Delete Selected
-                </button>
-              </>
-            )}
           </div>
-          <button
-            onClick={exportToPDF}
-            disabled={selectedBooks.size === 0}
-            className={`px-4 py-2 rounded-md transition-colors ${
-              selectedBooks.size === 0
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700"
-            }`}
-          >
-            Export Selected to PDF
-          </button>
-        </div>
-      )}
+        )}
+      </div>
+
       {books.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">No books added yet</p>
@@ -288,8 +292,8 @@ export default function BookList({
           </a>
         </div>
       ) : (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {currentBooks.map((book) => (
               <BookCard
                 key={book.id}
@@ -302,6 +306,7 @@ export default function BookList({
               />
             ))}
           </div>
+
           {totalPages > 1 && (
             <div className="flex justify-center mt-8 space-x-2">
               <button
@@ -349,8 +354,8 @@ export default function BookList({
               </button>
             </div>
           )}
-        </>
+        </div>
       )}
-    </>
+    </div>
   );
 }
