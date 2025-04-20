@@ -2,9 +2,8 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import BookList from "../components/BookList";
-import { Suspense } from "react";
 
-function BookListWithSearchContent() {
+export default function BookListWithSearch() {
   const searchParams = useSearchParams();
   const selectedGenre = searchParams.get("genre") || "";
   const router = useRouter();
@@ -22,13 +21,5 @@ function BookListWithSearchContent() {
       selectedGenre={selectedGenre}
       onGenreChangeAction={handleGenreChange}
     />
-  );
-}
-
-export default function BookListWithSearch() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <BookListWithSearchContent />
-    </Suspense>
   );
 }
