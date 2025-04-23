@@ -31,6 +31,11 @@ export default function BookListWithSearch() {
 
     const matchesGenre = selectedGenre ? book.genre === selectedGenre : true;
 
+    console.log("Search query:", searchQuery);
+    console.log("Book:", book.title);
+    console.log("Matches search:", matchesSearch);
+    console.log("Matches genre:", matchesGenre);
+
     return matchesSearch && matchesGenre;
   });
 
@@ -52,7 +57,7 @@ export default function BookListWithSearch() {
           <select
             value={selectedGenre}
             onChange={(e) => setSelectedGenre(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
           >
             <option value="">All Genres</option>
             {genres.map((genre) => (
