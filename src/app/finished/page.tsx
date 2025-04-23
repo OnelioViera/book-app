@@ -14,9 +14,12 @@ export default function FinishedBooks() {
   const booksPerPage = 8;
 
   useEffect(() => {
-    const allBooks = getBooks();
-    const finishedBooks = allBooks.filter((book) => book.isRead);
-    setBooks(finishedBooks);
+    const fetchBooks = async () => {
+      const allBooks = await getBooks();
+      const finishedBooks = allBooks.filter((book) => book.isRead);
+      setBooks(finishedBooks);
+    };
+    fetchBooks();
   }, []);
 
   const filteredBooks = selectedGenre

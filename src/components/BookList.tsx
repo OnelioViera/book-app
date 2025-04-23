@@ -11,13 +11,13 @@ import toast from "react-hot-toast";
 interface BookListProps {
   selectedGenre: string;
   books: Book[];
-  setBooks: (books: Book[]) => void;
+  setBooksAction: (books: Book[]) => void;
 }
 
 export default function BookList({
   selectedGenre,
   books,
-  setBooks,
+  setBooksAction,
 }: BookListProps) {
   const [selectedBooks, setSelectedBooks] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
@@ -49,7 +49,7 @@ export default function BookList({
     setSelectedBooks(new Set());
     // Refresh the books list by removing deleted books
     const updatedBooks = books.filter((book) => !selectedBooks.has(book.id));
-    setBooks(updatedBooks);
+    setBooksAction(updatedBooks);
     toast.success("Selected books deleted successfully");
   };
 

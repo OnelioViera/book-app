@@ -67,7 +67,7 @@ export default function BookListWithSearch() {
       <BookList
         selectedGenre={selectedGenre}
         books={filteredBooks}
-        setBooks={setBooks}
+        setBooksAction={setBooks}
       />
     </div>
   );
