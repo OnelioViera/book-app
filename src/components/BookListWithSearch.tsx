@@ -64,7 +64,11 @@ export default function BookListWithSearch() {
         </div>
       </div>
 
-      <BookList selectedGenre={selectedGenre} books={filteredBooks} />
+      <BookList
+        selectedGenre={selectedGenre}
+        books={filteredBooks}
+        setBooks={setBooks}
+      />
     </div>
   );
 }
