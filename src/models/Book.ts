@@ -13,17 +13,30 @@ const bookSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    required: [true, "Please provide a description for the book"],
     trim: true,
+  },
+  coverImage: {
+    type: String,
+    trim: true,
+  },
+  genre: {
+    type: String,
+    trim: true,
+  },
+  rating: {
+    type: Number,
+    min: 0,
+    max: 5,
+  },
+  isRead: {
+    type: Boolean,
+    default: false,
   },
   publishedYear: {
     type: Number,
-    required: [true, "Please provide a published year for the book"],
   },
   isbn: {
     type: String,
-    required: [true, "Please provide an ISBN for the book"],
-    unique: true,
     trim: true,
   },
   createdAt: {

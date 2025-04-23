@@ -18,13 +18,17 @@ export default function BookDetail() {
   const [book, setBook] = useState<Book | null>(null);
 
   useEffect(() => {
-    const bookId = params.id as string;
-    const foundBook = getBookById(bookId);
-    if (!foundBook) {
-      router.push("/");
-      return;
-    }
-    setBook(foundBook);
+    const fetchBook = async () => {
+      const bookId = params.id as string;
+      const foundBook = await getBookById(bookId);
+      if (!foundBook) {
+        router.push("/");
+        return;
+      }
+      setBook(foundBook);
+    };
+
+    fetchBook();
   }, [params.id, router]);
 
   const handleDelete = () => {

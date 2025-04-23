@@ -1,121 +1,113 @@
 import { Book } from "../types/book";
 
-const BOOKS_STORAGE_KEY = "books";
-
-const compressImage = async (base64: string): Promise<string> => {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.src = base64;
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-
-      // Set canvas size to a reasonable maximum
-      const maxSize = 800;
-      let width = img.width;
-      let height = img.height;
-
-      if (width > height && width > maxSize) {
-        height = Math.round((height * maxSize) / width);
-        width = maxSize;
-      } else if (height > maxSize) {
-        width = Math.round((width * maxSize) / height);
-        height = maxSize;
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-      ctx?.drawImage(img, 0, 0, width, height);
-
-      // Convert to compressed base64
-      const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
-      resolve(compressedBase64);
-    };
-  });
-};
-
-export const getBooks = (): Book[] => {
-  if (typeof window === "undefined") return [];
-  const booksJson = localStorage.getItem(BOOKS_STORAGE_KEY);
-  return booksJson ? JSON.parse(booksJson) : [];
+export const getBooks = async (): Promise<Book[]> => {
+  try {
+    console.log("Fetching books...");
+    const response = await fetch("/api/books");
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Failed to fetch books:", errorData.error);
+      throw new Error(errorData.error || "Failed to fetch books");
+    }
+    const books = await response.json();
+    console.log("Fetched books successfully:", books);
+    return books;
+  } catch (error) {
+    console.error("Error fetching books:", error);
+    return [];
+  }
 };
 
 export const saveBook = async (
   book: Omit<Book, "id" | "createdAt" | "updatedAt">
 ): Promise<Book> => {
-  const books = getBooks();
-  const newBook: Book = {
-    ...book,
-    id: crypto.randomUUID(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
+  try {
+    const response = await fetch("/api/books", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(book),
+    });
 
-  // If the coverImage is a base64 string, compress and store it separately
-  if (newBook.coverImage?.startsWith("data:image")) {
-    const imageId = `img_${newBook.id}`;
-    const compressedImage = await compressImage(newBook.coverImage);
-    localStorage.setItem(imageId, compressedImage);
-    newBook.coverImage = imageId;
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to save book");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error saving book:", error);
+    throw error;
   }
-
-  books.push(newBook);
-  localStorage.setItem(BOOKS_STORAGE_KEY, JSON.stringify(books));
-  return newBook;
 };
 
 export const updateBook = async (
   id: string,
   book: Partial<Book>
 ): Promise<Book | null> => {
-  const books = getBooks();
-  const index = books.findIndex((b) => b.id === id);
-  if (index === -1) return null;
+  try {
+    const response = await fetch(`/api/books/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(book),
+    });
 
-  const updatedBook = {
-    ...books[index],
-    ...book,
-    updatedAt: new Date().toISOString(),
-  };
-
-  // Handle base64 image if present
-  if (book.coverImage?.startsWith("data:image")) {
-    const imageId = `img_${id}`;
-    const compressedImage = await compressImage(book.coverImage);
-    localStorage.setItem(imageId, compressedImage);
-    updatedBook.coverImage = imageId;
-  }
-
-  books[index] = updatedBook;
-  localStorage.setItem(BOOKS_STORAGE_KEY, JSON.stringify(books));
-  return updatedBook;
-};
-
-export const deleteBook = (id: string): boolean => {
-  const books = getBooks();
-  const filteredBooks = books.filter((book) => book.id !== id);
-  if (filteredBooks.length === books.length) return false;
-
-  // Delete associated image if it exists
-  const imageId = `img_${id}`;
-  localStorage.removeItem(imageId);
-
-  localStorage.setItem(BOOKS_STORAGE_KEY, JSON.stringify(filteredBooks));
-  return true;
-};
-
-export const getBookById = (id: string): Book | null => {
-  const books = getBooks();
-  const book = books.find((book) => book.id === id);
-  if (!book) return null;
-
-  // If the coverImage is an image ID, retrieve the actual image
-  if (book.coverImage?.startsWith("img_")) {
-    const imageData = localStorage.getItem(book.coverImage);
-    if (imageData) {
-      book.coverImage = imageData;
+    if (!response.ok) {
+      throw new Error("Failed to update book");
     }
-  }
 
-  return book;
+    return await response.json();
+  } catch (error) {
+    console.error("Error updating book:", error);
+    return null;
+  }
+};
+
+export const deleteBook = async (id: string): Promise<boolean> => {
+  try {
+    const response = await fetch(`/api/books/${id}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to delete book");
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error deleting book:", error);
+    return false;
+  }
+};
+
+export const getBookById = async (id: string): Promise<Book | null> => {
+  try {
+    if (!id) {
+      console.error("No book ID provided");
+      return null;
+    }
+
+    const response = await fetch(`/api/books/${id}`);
+    if (!response.ok) {
+      if (response.status === 404) {
+        console.error("Book not found:", id);
+        return null;
+      }
+      const errorData = await response.json();
+      console.error("Failed to fetch book:", errorData.error);
+      return null;
+    }
+    const book = await response.json();
+    console.log("Fetched book data:", {
+      ...book,
+      coverImage: book.coverImage ? "Image data present" : "No image data",
+    });
+    return book;
+  } catch (error) {
+    console.error("Error fetching book:", error);
+    return null;
+  }
 };

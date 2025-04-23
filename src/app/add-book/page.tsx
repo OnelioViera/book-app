@@ -41,9 +41,14 @@ export default function AddBook() {
   const [previewImage, setPreviewImage] = useState<string>("");
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setIsSubmitting(true);
+
     try {
       const bookData = {
         ...formData,
@@ -52,11 +57,34 @@ export default function AddBook() {
         genre: formData.genre || undefined,
         isRead: false,
       };
+
+      // Ensure coverImage is properly handled
+      if (bookData.coverImage) {
+        // If it's a URL, keep it as is
+        if (bookData.coverImage.startsWith("http")) {
+          bookData.coverImage = bookData.coverImage;
+        }
+        // If it's a base64 string, keep it as is
+        else if (bookData.coverImage.startsWith("data:image")) {
+          bookData.coverImage = bookData.coverImage;
+        }
+      }
+
+      console.log("Submitting book data:", bookData); // Debug log
+
       const newBook = await saveBook(bookData);
+      console.log("Book saved successfully:", newBook); // Debug log
+
       router.push(`/books/${newBook.id}`);
     } catch (error) {
       console.error("Error saving book:", error);
-      // You might want to show an error message to the user here
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to save book. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -71,42 +99,60 @@ export default function AddBook() {
     // Update preview image if it's a URL
     if (name === "coverImage" && value.startsWith("http")) {
       setPreviewImage(value);
+      // Ensure the URL is properly saved in the form data
+      setFormData((prev) => ({ ...prev, coverImage: value }));
     } else if (name === "coverImage" && !value) {
       // Clear preview if URL is cleared
       setPreviewImage("");
+      setFormData((prev) => ({ ...prev, coverImage: "" }));
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setIsUploading(true);
       setUploadProgress(0);
 
-      // Simulate upload progress
-      const interval = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev >= 95) {
-            clearInterval(interval);
-            return prev;
-          }
-          return prev + 5;
-        });
-      }, 100);
+      try {
+        // Simulate upload progress
+        const interval = setInterval(() => {
+          setUploadProgress((prev) => {
+            if (prev >= 95) {
+              clearInterval(interval);
+              return prev;
+            }
+            return prev + 5;
+          });
+        }, 100);
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        clearInterval(interval);
-        setUploadProgress(100);
-        const result = reader.result as string;
-        setPreviewImage(result);
-        setFormData((prev) => ({ ...prev, coverImage: result }));
-        setTimeout(() => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          clearInterval(interval);
+          setUploadProgress(100);
+          const result = reader.result as string;
+          setPreviewImage(result);
+          // Ensure we're setting the complete base64 string
+          setFormData((prev) => ({ ...prev, coverImage: result }));
+          setTimeout(() => {
+            setIsUploading(false);
+            setUploadProgress(0);
+          }, 500);
+        };
+        reader.onerror = () => {
+          clearInterval(interval);
+          setError("Failed to read image file");
           setIsUploading(false);
           setUploadProgress(0);
-        }, 500);
-      };
-      reader.readAsDataURL(file);
+        };
+        // Read the file as a data URL to get the base64 string
+        reader.readAsDataURL(file);
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        setError("Failed to upload image");
+        setIsUploading(false);
+        setUploadProgress(0);
+      }
     } else {
       setPreviewImage("");
       setFormData((prev) => ({ ...prev, coverImage: "" }));
@@ -118,6 +164,11 @@ export default function AddBook() {
       <Navbar />
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Add New Book</h1>
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label
@@ -248,7 +299,7 @@ export default function AddBook() {
                   height={128}
                   className="h-32 w-auto object-contain rounded-md"
                   loader={({ src }) => src}
-                  unoptimized={previewImage.startsWith("data:image")}
+                  unoptimized
                 />
               </div>
             )}
@@ -259,13 +310,13 @@ export default function AddBook() {
               htmlFor="rating"
               className="block text-sm font-medium text-gray-700"
             >
-              Rating (1-5)
+              Rating (Optional)
             </label>
             <input
               type="number"
               id="rating"
               name="rating"
-              min="1"
+              min="0"
               max="5"
               step="0.1"
               value={formData.rating}
@@ -277,9 +328,12 @@ export default function AddBook() {
           <div className="flex justify-end">
             <button
               type="submit"
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              disabled={isSubmitting}
+              className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
-              Add Book
+              {isSubmitting ? "Adding..." : "Add Book"}
             </button>
           </div>
         </form>

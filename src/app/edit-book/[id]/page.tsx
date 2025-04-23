@@ -45,24 +45,43 @@ export default function EditBook() {
   ];
 
   useEffect(() => {
-    const bookId = params.id as string;
-    const book = getBookById(bookId);
-    if (book) {
-      setFormData({
-        title: book.title,
-        author: book.author,
-        description: book.description || "",
-        coverImage: book.coverImage || "",
-        genre: book.genre || "",
-        rating: book.rating,
-      });
-      if (book.coverImage) {
-        setPreviewImage(book.coverImage);
+    const fetchBook = async () => {
+      const bookId = params.id as string;
+      const book = await getBookById(bookId);
+      if (book) {
+        console.log("Setting form data with book:", {
+          ...book,
+          coverImage: book.coverImage ? "Image data present" : "No image data",
+        });
+        setFormData({
+          title: book.title,
+          author: book.author,
+          description: book.description || "",
+          coverImage: book.coverImage || "",
+          genre: book.genre || "",
+          rating: book.rating,
+        });
+        // Set the preview image if it exists
+        if (book.coverImage) {
+          console.log("Setting preview image:", book.coverImage);
+          setPreviewImage(book.coverImage);
+        }
+      } else {
+        console.error("Book not found:", bookId);
+        // Instead of redirecting, show an error message
+        setFormData({
+          title: "Book not found",
+          author: "",
+          description: "The book you're trying to edit could not be found.",
+          coverImage: "",
+          genre: "",
+          rating: undefined,
+        });
       }
-    } else {
-      router.push("/");
-    }
-  }, [params.id, router]);
+    };
+
+    fetchBook();
+  }, [params.id]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -134,6 +153,12 @@ export default function EditBook() {
         description: formData.description || undefined,
         genre: formData.genre || undefined,
       };
+      console.log("Submitting book data:", {
+        ...bookData,
+        coverImage: bookData.coverImage
+          ? "Image data present"
+          : "No image data",
+      });
       await updateBook(bookId, bookData);
       router.push(`/books/${bookId}`);
     } catch (error) {
@@ -276,7 +301,7 @@ export default function EditBook() {
                   height={128}
                   className="h-32 w-auto object-contain rounded-md"
                   loader={({ src }) => src}
-                  unoptimized={previewImage.startsWith("data:image")}
+                  unoptimized={true}
                 />
               </div>
             )}
